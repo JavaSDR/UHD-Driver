@@ -1,0 +1,69 @@
+plugins {
+    id "nl.elec332.gradle.nativeplugin.javacpp" version "0.4-Beta"
+    id "nl.elec332.gradle.ossrhplugin" version "1.0.2-Beta"
+    id "com.dua3.gradle.jpms" version "1.0"
+}
+
+//Add the location to your system vars or change this to the boost install folder
+// (Windows only)
+ext.boost_dir = System.getenv("BOOST_LOCATION")
+
+group 'nl.elec332.sdr.source'
+archivesBaseName = "UHDDriver"
+version '0.1-Alpha'
+
+sourceCompatibility = targetCompatibility = 1.11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    javacpp "nl.elec332.sdr:sdrlib:0.2-Beta"
+}
+
+nativeProjects {
+
+    source_uhd {
+        platforms "windows_x64"
+
+        installedDependency System.getenv("UHD_PKG_PATH"), "bin", "lib", "include"
+        installedLibDependency boost_dir, "lib64-msvc-14.2", {name ->
+            return name.contains("mt-s") //Only link header libraries
+        }, ""
+    }
+
+}
+
+nativeInterfaces {
+
+    UHDLib {
+        classPackage = "nl.elec332.sdr.source.uhd"
+
+        projectDependency "source_uhd"
+
+        platforms "windows_x64"
+    }
+
+    UHDDevice {
+        classPackage = "nl.elec332.sdr.source.uhd"
+
+        projectDependency "source_uhd"
+
+        platforms "windows_x64"
+    }
+
+}
+
+ossrh {
+    description = 'UHD SDR Driver for Java'
+    githubUrl = 'https://github.com/JavaSDR/UHD-Driver'
+
+    license {
+        name 'GNU Lesser General Public License, version 2.1'
+        url 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt'
+    }
+    developer {
+        name 'Elec332'
+    }
+}
